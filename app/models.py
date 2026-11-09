@@ -12,6 +12,8 @@ from sqlmodel import Field, SQLModel
 
 class Villes(SQLModel, table=True):
     """Table 'villes' : une ligne par ville suivie."""
+    # Contrainte sur le COUPLE de colonnes : une ville à une seule coordonnées.
+    __table_args__ = (UniqueConstraint("latitude", "longitude"),)
 
     # 'None' à la création : c'est la base qui attribue l'identifiant (autoincrément).
     id: int | None   = Field(default=None, primary_key=True)
@@ -24,9 +26,7 @@ class Villes(SQLModel, table=True):
 
 class Releves(SQLModel, table=True):
     """Table 'releves' : une ligne par mesure météo d'une ville (1 ville -> N relevés)."""
-
-    # Contrainte sur le COUPLE de colonnes : une ville peut avoir plusieurs relevés,
-    # mais jamais deux pour le même horodatage.
+    # Contrainte sur le COUPLE de colonnes : une ville peut avoir plusieurs relevés.
     __table_args__ = (UniqueConstraint("ville_id", "date_heure"),)
 
     id: int | None          = Field(default=None, primary_key=True)

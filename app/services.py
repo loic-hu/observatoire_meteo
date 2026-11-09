@@ -3,7 +3,7 @@
 Ces fonctions sont utilisées à la fois par le script 'main.py' et par l'API
 ('api.py') : la logique est écrite une seule fois.
 """
-from sqlmodel import Session, select
+from sqlmodel import Session, select, or_
 
 # MeteoApiError est réexportée ici pour que main.py et api.py l'importent depuis un seul endroit (services).
 from app.client import MeteoApiError, fetch_meteo
@@ -19,6 +19,16 @@ def trouver_ville(session: Session, nom: str) -> Villes | None:
         L'objet 'Villes', ou 'None' si elle n'existe pas.
     """
     return session.exec(select(Villes).where(Villes.nom == normaliser_nom(nom))).first()
+
+def trouver_doublon(session: Session, ville: VilleCreate) -> Villes | None:
+    """Cherche des coodronnées déjà enregistrée."""
+    return session.exec(
+        select(Villes).where(
+            or_(Villes.nom == ville.nom,
+               (Villes.latitude == ville.latitude) & (Villes.longitude == ville.longitude),
+            )
+        )
+    ).first()
 
 # Permet de créer une ville
 def creer_ville(session: Session, ville: VilleCreate) -> Villes:
