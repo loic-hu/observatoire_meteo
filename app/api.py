@@ -58,8 +58,12 @@ def lister_villes(session: Session = Depends(get_session)):
 @app.post("/villes", response_model=VilleRead, status_code=201)
 def ajouter_ville(ville: VilleCreate, session: Session = Depends(get_session)):
     """Ajoute une ville. Erreurs : 409 si elle existe déjà, 422 si les données sont invalides."""
-    if services.trouver_ville(session, ville.nom):
-        raise HTTPException(status_code=409, detail="Ville déjà enregistrée")
+    existante = services.trouver_doublon(session, ville)
+    if existante:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Conflit avec la ville déjà enregistrée : {existante.nom}",
+    )
     return services.creer_ville(session, ville)
 
 # {ville} dans le chemin devient le paramètre 'ville' de la fonction.
